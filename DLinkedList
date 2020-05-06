@@ -1,0 +1,297 @@
+using System;
+using System.Collections;
+
+{
+
+    class DLinkedList : IEnumerable
+    {
+        //Declaring variables 
+        public DLinkedListNode head;
+        public DLinkedListNode tail;
+        public int count;
+
+        //Creating an empty linked list
+        public DLinkedList()
+        {
+            this.head = null;
+            this.tail = null;
+            this.count = 0;
+        }
+
+        //Get accessor for the count 
+        public int GetCount()
+        {
+            return count;
+        }
+
+
+        //Using indexer to get/set the element on the specified position
+        public object this[int index]
+        {
+            get
+            {
+                if (index >= count || index < 0)
+
+                {
+                    throw new ArgumentOutOfRangeException(nameof(index), "Out of range!");
+                }
+
+                //head contains the first element of the list
+                DLinkedListNode currentNode = this.head;
+
+                for (int i = 0; i < index; i++)
+                {
+                    currentNode = currentNode.next;
+                }
+                return currentNode.element;
+            }
+
+            set
+            {
+                if (index >= count || index < 0)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(index), "Out of range!");
+                }
+
+                DLinkedListNode currentNode = this.head;
+                for (int i = 0; i < index; i++)
+                {
+                    currentNode = currentNode.next;
+                }
+                currentNode.element = value;
+            }
+        }
+        //Inserting a value at a random location
+        public void InsertAtRandomLocation(object element)
+        {
+            Random random = new Random();
+            int index = random.Next(0, count);
+
+            DLinkedListNode currentNode = this.head;
+            for (int i = 0; i < index; i++)
+            {
+                currentNode = currentNode.next;
+            }
+
+            DLinkedListNode temp = new DLinkedListNode(element);
+            temp.previous = currentNode.previous;
+            temp.next = currentNode;
+            temp.previous.next = temp;
+            currentNode.previous = temp;
+
+            count++;// increasing the size of the linked list 
+
+        }
+
+        public void AddLast(object item)
+        {
+            // if list is empty set head and tail to item
+            if (this.head == null)
+            {
+                this.head = new DLinkedListNode(item);
+                this.tail = this.head;
+            }
+            else
+            {
+                DLinkedListNode newItem = new DLinkedListNode(item, tail);
+                this.tail = newItem;
+            }
+            count++;
+        }
+
+        //Adding a node to the head
+        public void AddFront(int item)
+        {
+            DLinkedListNode newNode = new DLinkedListNode(item)
+            {
+                next = this.head,
+                previous = null
+            };
+            if (this.head != null)
+            {
+                this.head.previous = newNode;
+            }
+            this.head = newNode;
+            count++;
+        }
+
+
+        public void DeleteLast()
+        {
+            if (head != null)
+            {
+                // if list has one element
+                if (head == tail)
+                {
+                    // Delete the list
+                    DeleteAll();
+                }
+                else
+                {
+                    //Delete the tail set the new tail to tail.previous
+                    tail = tail.previous;
+                    //Decrease the size of the list 
+                    count--;
+                }
+            }
+        }
+
+        //Deleting the first item in the list 
+        public void DeleteFirst()
+        {
+            if (head != null)
+            {
+                //If the list has one element 
+                if (head == tail)
+                {
+                    DeleteAll();
+                }
+                else
+                {   //Delete the head set the new head as the next item after the original head
+                    head = head.next;
+                    count--;
+                }
+            }
+        }
+        //Printing the list from head to tail 
+        public void PrintAllForward()
+        {
+            //Choosing head as the starting node 
+            DLinkedListNode currentNode = head;
+
+            //prints the contents of the list until it reaches null. 
+            while (currentNode != null)
+            {
+                Console.WriteLine(currentNode.element);
+                currentNode = currentNode.next;
+            }
+        }
+
+        //Printing the list from tail to head 
+        public void PrintAllReverse()
+
+        {   //Choosing tail as the starting node 
+            DLinkedListNode currentNode = tail;
+
+            while (currentNode != null)
+            {
+                Console.WriteLine(currentNode.element);
+                currentNode = currentNode.previous;
+            }
+        }
+
+        //Deletes all items in list
+        public void DeleteAll()
+        {
+            //setting head and tail to null and count to 0
+            head = null;
+            tail = null;
+            count = 0;
+        }
+
+        //merging 2 lists
+        public void Merge(DLinkedList Dlist)
+        {
+            this.tail.next = Dlist.head;
+            this.tail = Dlist.tail;
+            this.count += Dlist.count;
+        }
+
+        //Finding the closest object 
+        public object FindClosest(object obj)
+        {
+            
+            Position pos1 = (obj as MobileObject).Pos;
+            Position pos2 = (head.element as MobileObject).Pos;
+
+            object closest = head.element;
+            double lowestdist = Math.Pow(pos1.getX() - pos2.getX(), 2) +
+                                Math.Pow(pos1.getY() - pos2.getY(), 2) +
+                                Math.Pow(pos1.getZ() - pos2.getZ(), 2);
+
+            DLinkedListNode currentNode = head.next;
+
+            while (currentNode != null)
+            {
+                pos2 = (currentNode.element as MobileObject).Pos;
+
+                double tempdist = Math.Pow(pos1.getX() - pos2.getX(), 2) +
+                                  Math.Pow(pos1.getY() - pos2.getY(), 2) +
+                                  Math.Pow(pos1.getZ() - pos2.getZ(), 2);
+
+                if (tempdist < lowestdist)
+                {
+                    lowestdist = tempdist;
+                    closest = currentNode.element;
+                }
+
+
+                currentNode = currentNode.next;
+            }
+            return closest;
+        }
+
+
+        // Implementation for the GetEnumerator method.
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return (IEnumerator)GetEnumerator();
+        }
+
+        public DLinkedListEnum GetEnumerator()
+        {
+            return new DLinkedListEnum(head);
+        }
+    }
+
+    // When you implement IEnumerable, you must also implement IEnumerator.
+    public class DLinkedListEnum : IEnumerator
+    {
+        public DLinkedListNode newHead;
+        public DLinkedListNode currentNode;
+
+        public DLinkedListEnum(DLinkedListNode head)
+        {
+            newHead = new DLinkedListNode(null);
+            newHead.next = head;
+            currentNode = newHead;
+        }
+
+        public bool MoveNext()
+        {
+            currentNode = currentNode.next;
+            return (currentNode != null);
+        }
+
+        public void Reset()
+        {
+            currentNode = newHead;
+
+        }
+
+        object IEnumerator.Current
+        {
+            get
+            {
+                return Current;
+            }
+        }
+
+        public object Current
+        {
+            get
+            {
+                try
+                {
+                    return currentNode.element;
+                }
+                catch (IndexOutOfRangeException)
+                {
+                    throw new InvalidOperationException();
+                }
+            }
+        }
+    }
+
+
+}
